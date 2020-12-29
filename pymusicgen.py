@@ -16,7 +16,9 @@ from time import sleep
 from pygame import mixer
 
 # Init pygame audio mixer
+
 mixer.init()
+mixer.set_num_channels(64)
 
 # init MyMidi
 MyMIDI = MIDIFile(1)
@@ -93,9 +95,6 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         # Directory where piano note wav files are stored
         self.wavdir = 'wav/'
 
-        # name of all the notes in the wav dir
-        self.wav_filenames = next(os.walk(self.wavdir))[2]
-
         # piano settings
         self.starting_point = 24
         self.note_range = 16
@@ -117,7 +116,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ourscale = []
         self.thismeasure = []  # filled with note objects
         self.song = []  # filed with measures
-        self.song_iterator = TwoWayIterator(self.song)  # For CRU operations
+        self.song_iterator = TwoWayIterator(self.song)  # For CRUD operations
 
         # Connect functions with gui elements
         self.generatebutton.clicked.connect(self.new_measure)
@@ -129,6 +128,8 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         self.backbutton.clicked.connect(self.back_measure)
         self.deletebutton.clicked.connect(self.delete_measure)
         self.insertbutton.clicked.connect(self.insert_new_measure)
+        self.playbutton.clicked.connect(self.play_song)
+        self.playmeasurebutton.clicked.connect(self.playmeasure)
 
     # sets a random seed for user
     def random_seed(self):
@@ -154,12 +155,14 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def check_checkboxes(self):
         msg = ''
-        test = self.notebox_chord.isChecked() or self.notebox_32.isChecked() \
+        test = self.notebox_32.isChecked() \
                or self.notebox_16.isChecked() or self.notebox_8.isChecked() \
                or self.notebox_4.isChecked() or self.notebox_2.isChecked() \
                or self.notebox_1.isChecked()
         if not test:
             msg = 'Please check some note boxes\n'
+        if self.notebox_chord.isChecked() and not test:
+            msg = 'Please check other boxes along with "Chord"'
         return msg
 
     def check_spinboxes(self):
@@ -379,6 +382,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # returns a scale of 16 notes, from the key tonic + 24
     def makescale(self):
+        self.ourscale = []
         ouroffset = name_to_int_distance[self.key]
 
         keywheel = []
@@ -420,63 +424,57 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
     # Fills an n=#sleeps array with notes from that scale that hopefully travel well.
     def makemeasure(self):  # TODO
         self.thismeasure = []
+        i = len(self.note_times)
         try:
-            for sleeps in self.note_times:
-                success = False
-                while not success:
-                    # add something to it if it's empty
-                    if len(self.thismeasure) == 0:
-                        self.thismeasure.append(self.ourscale[0])
+            while i > 0:
+                # add something to it if it's empty
+                if len(self.thismeasure) == 0:
+                    self.thismeasure.append(self.ourscale[0])
+                    i -= 1
+                lastnoteused = self.thismeasure[-1]
 
-                    lastnoteused = self.thismeasure[-1]
+                # randomly choose a note from our scale
+                nextjump = random.choice(self.ourscale)
+                absjump = abs(nextjump - lastnoteused)
 
-                    # randomly choose a note from our scale
-                    nextjump = random.choice(self.ourscale)
-                    absjump = abs(nextjump - lastnoteused)
-
-                    # no jump higher than 10, no minor 5th"
-                    # not a minor second or second away in a chord
-                    # not the same exact note twice together in a chord
-                    if (absjump >= 10 or absjump == 6) or \
-                            ((absjump == 2 or absjump == 1) and sleeps < 0.01) or \
-                            (abs(absjump - lastnoteused == lastnoteused) and sleeps < 0.01):
-                        pass
-                    else:
-                        success = True
-
-                    if success:
-                        self.thismeasure.append(nextjump)
-                        break
+                # no jump higher than 10, no minor 5th"
+                # not a minor second or second away in a chord
+                # not the same exact note twice together in a chord
+                if (absjump >= 10 or absjump == 6) or \
+                        ((absjump == 2 or absjump == 1) and self.note_times[i] < 0.01) or \
+                        (abs(absjump - lastnoteused == lastnoteused) and self.note_times[i] < 0.01):
+                    continue
+                else:
+                    self.thismeasure.append(nextjump)
+                    i -= 1
         except Exception as e:
             print(e)
 
+        #print('{} {}'.format(len(self.thismeasure), len(self.note_times)))
+
     def playmeasure(self):  # TODO
-        for notes, sleeps in zip(self.thismeasure):
-            self.playnote(notes, sleeps)
+        print()
+        try:
+            print('{} and {} should be equal'.format(len(self.thismeasure), len(self.note_times)))
+            for note, sleep in zip(self.thismeasure, self.note_times):
+                self.playnote(note, sleep)
+        except Exception as e:
+            print(e)
 
     # plays a single note by integer value
-    def playnote(self, noteint, sleeptime):  # TODO
+    def playnote(self, noteint, sleeptime):
         # make a list of all files in the directory
         if sys.platform in ('posix', 'linux', 'linux2'):
             subprocess.Popen(['aplay', '-q', 'wav/' + str(self.thismeasure[noteint])])
         if sys.platform in ('win32', 'win64', 'windows'):
-            s = mixer.Sound(("wav/" + str(self.thismeasure[noteint])))
+            s = mixer.Sound(("wav/P-" + str(noteint) + '.wav'))
             s.play()
         sleep(sleeptime)
 
-    # plays a single note by filename
-    def playnotefile(self, filename, sleeptime):  # TODO
-        subprocess.Popen(['aplay', '-q', 'wav/' + filename])
-        sleep(sleeptime)
-
     # plays a song file
-    def playsongfile(self, keyinfodict, oursong):  # TODO
-        ourseeds = keyinfodict["ourseeds"]
-        for seed, measure in zip(ourseeds, oursong):
-            print("seed: %d" % seed)
-            print(*measure)
-            for notes, times in zip(*measure):
-                self.playnote(notes, times)
+    def playsongfile(self):  # TODO
+        for measure in self.song:
+            self.playmeasure()
 
 
 def main():

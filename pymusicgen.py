@@ -30,24 +30,21 @@ name_to_int_base12 = {'C': 0, 'Db': 1, 'D': 2, 'Eb': 3, 'E': 4, 'F': 5, 'F#': 6,
 name_to_int_distance = {'C': 0, 'C#/Db': 1, 'D': 2, 'D#/Eb': 3, 'E': 4, 'F': 5, 'F#/Gb': -6,
                         'G': -5, 'G#/Ab': -4, 'A': -3, 'A#/Bb': -2, 'B': -1}
 int_distance = [0, 1, 2, 3, 4, 5, -6, -5, -4, -3, -2, -1]
-intref = ["C0", "Db0", "D0", "Eb0", "E0", "F0", "#0", "G0", "Ab0", "A0", "Bb0", "B0", "C1", "Db1", "D1",
-          "Eb1", "E1", "F1", "F#1", "G1", "Ab1", "A1", "Bb1", "B1", "C2", "Db2", "D2", "Eb2", "E2", "F2",
-          "F#2", "G2", "Ab2", "A2", "Bb2", "B2", "C3", "Db3", "D3", "Eb3", "E3", "F3", "F#3", "G3", "Ab3",
-          "A3", "Bb3", "B3", "C4", "Db4", "D4", "Eb4", "E4", "F4", "F#4", "G4", "Ab4", "A4", "Bb4", "B4",
-          "C5", "Db5", "D5", "Eb5", "E5", "F5", "F#5", "G5", "Ab5", "A5", "Bb5", "B5", "C6", "Db6", "D6",
-          "Eb6", "E6", "F6", "F#6", "G6", "Ab6", "A6", "Bb6", "B6", "C7", "Db7", "D7", "Eb7", "E7", "F7",
-          "F#7", "G7", "Ab7", "A7", "Bb7", "B7", "C8"]
-toneref = {"C0": 0, "Db0": 1, "D0": 2, "Eb0": 3, "E0": 4, "F0": 5, "F#0": 6, "G0": 7, "Ab0": 8, "A0": 9,
-           "Bb0": 10, "B0": 11, "C1": 12, "Db1": 13, "D1": 14, "Eb1": 15, "E1": 16, "F1": 17, "F#1": 18,
-           "G1": 19, "Ab1": 20, "A1": 21, "Bb1": 22, "B1": 23, "C2": 24, "Db2": 25, "D2": 26, "Eb2": 27,
-           "E2": 28, "F2": 29, "F#2": 30, "G2": 31, "Ab2": 32, "A2": 33, "Bb2": 34, "B2": 35, "C3": 36,
-           "Db3": 37, "D3": 38, "Eb3": 39, "E3": 40, "F3": 41, "F#3": 42, "G3": 43, "Ab3": 44, "A3": 45,
-           "Bb3": 46, "B3": 47, "C4": 48, "Db4": 49, "D4": 50, "Eb4": 51, "E4": 52, "F4": 53, "F#4": 54,
-           "G4": 55, "Ab4": 56, "A4": 57, "Bb4": 58, "B4": 59, "C5": 60, "Db5": 61, "D5": 62, "Eb5": 63,
-           "E5": 64, "F5": 65, "F#5": 66, "G5": 67, "Ab5": 68, "A5": 69, "Bb5": 70, "B5": 71, "C6": 72,
-           "Db6": 73, "D6": 74, "Eb6": 75, "E6": 76, "F6": 77, "F#6": 78, "G6": 79, "Ab6": 80, "A6": 81,
-           "Bb6": 82, "B6": 83, "C7": 84, "Db7": 85, "D7": 86, "Eb7": 87, "E7": 88, "F7": 89, "F#7": 90,
-           "G7": 91, "Ab7": 92, "A7": 93, "Bb7": 94, "B7": 95, "C8": 96}
+intref = ["C1", "Db1", "D1", "Eb1", "E1", "F1", "#1", "G1", "Ab1", "A1", "Bb1", "B1", "C2", "Db2", "D2",
+          "Eb2", "E2", "F2", "F#2", "G2", "Ab2", "A2", "Bb2", "B2", "C3", "Db3", "D3", "Eb3", "E3", "F3",
+          "F#3", "G3", "Ab3", "A3", "Bb3", "B3", "C4", "Db4", "D4", "Eb4", "E4", "F4", "F#4", "G4", "Ab4",
+          "A4", "Bb4", "B4", "C5", "Db5", "D5", "Eb5", "E5", "F5", "F#5", "G5", "Ab5", "A5", "Bb5", "B5",
+          "C6", "Db6", "D6", "Eb6", "E6", "F6", "F#6", "G6", "Ab6", "A6", "Bb6", "B6", "C7", "Db7", "D7",
+          "Eb7", "E7", "F7", "F#7", "G7", "Ab7", "A7", "Bb7", "B7", "C8"]
+toneref = {'C1': 24, 'Db1': 25, 'D1': 26, 'Eb1': 27, 'E1': 28, 'F1': 29, 'F#1': 30, 'G1': 31, 'Ab1': 32, 'A1': 33,
+           'Bb1': 34, 'B1': 35, 'C2': 36, 'Db2': 37, 'D2': 38, 'Eb2': 39, 'E2': 40, 'F2': 41, 'F#2': 42, 'G2': 43,
+           'Ab2': 44, 'A2': 45, 'Bb2': 46, 'B2': 47, 'C3': 48, 'Db3': 49, 'D3': 50, 'Eb3': 51, 'E3': 52, 'F3': 53,
+           'F#3': 54, 'G3': 55, 'Ab3': 56, 'A3': 57, 'Bb3': 58, 'B3': 59, 'C4': 60, 'Db4': 61, 'D4': 62, 'Eb4': 63,
+           'E4': 64, 'F4': 65, 'F#4': 66, 'G4': 67, 'Ab4': 68, 'A4': 69, 'Bb4': 70, 'B4': 71, 'C5': 72, 'Db5': 73,
+           'D5': 74, 'Eb5': 75, 'E5': 76, 'F5': 77, 'F#5': 78, 'G5': 79, 'Ab5': 80, 'A5': 81, 'Bb5': 82, 'B5': 83,
+           'C6': 84, 'Db6': 85, 'D6': 86, 'Eb6': 87, 'E6': 88, 'F6': 89, 'F#6': 90, 'G6': 91, 'Ab6': 92, 'A6': 93,
+           'Bb6': 94, 'B6': 95, 'C7': 96, 'Db7': 97, 'D7': 98, 'Eb7': 99, 'E7': 100, 'F7': 101, 'F#7': 102, 'G7': 103,
+           'Ab7': 104, 'A7': 105, 'Bb7': 106, 'B7': 107, 'C8': 108}
 
 
 # Return array that is rotated circular
@@ -96,7 +93,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         self.wavdir = 'wav/'
 
         # piano settings
-        self.starting_point = 24
+        self.starting_point = 60
         self.note_range = 16
 
         # from the "Open" menu TODO
@@ -131,6 +128,24 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         self.playbutton.clicked.connect(self.play_song)
         self.playmeasurebutton.clicked.connect(self.playmeasure)
 
+        self.actionNew_Song.triggered.connect(self.newsong)
+        self.actionSave_Song.triggered.connect(self.savesong)
+        self.actionAbout.triggered.connect(self.aboutmenu)
+        self.actionExport_to_MIDI.triggered.connect(self.export_to_midi)
+        self.actionQuit.triggered.connect(self.quit)
+
+    def quit(self):
+        pass
+
+    def aboutmenu(self):
+        pass
+
+    def export_to_midi(self):
+        pass
+
+    def newsong(self):
+        pass
+
     # sets a random seed for user
     def random_seed(self):
         self.seed = random.randint(0, sys.maxsize)
@@ -155,10 +170,9 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def check_checkboxes(self):
         msg = ''
-        test = self.notebox_32.isChecked() \
-               or self.notebox_16.isChecked() or self.notebox_8.isChecked() \
-               or self.notebox_4.isChecked() or self.notebox_2.isChecked() \
-               or self.notebox_1.isChecked()
+        test = self.notebox_32.isChecked() or self.notebox_16.isChecked() or self.notebox_8.isChecked() or \
+               self.notebox_4.isChecked() or self.notebox_2.isChecked() or self.notebox_1.isChecked()
+
         if not test:
             msg = 'Please check some note boxes\n'
         if self.notebox_chord.isChecked() and not test:
@@ -202,22 +216,16 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # verify all fields have data, or show user
     def check_fields(self):
-        msg = self.check_key_field() + \
-              self.check_tension_field() + \
-              self.check_checkboxes() + \
-              self.check_spinboxes() + \
-              self.check_seedbox_field() + \
-              self.check_bpmeasure_field() + \
+        msg = self.check_key_field() + self.check_tension_field() + self.check_checkboxes() + \
+              self.check_spinboxes() + self.check_seedbox_field() + self.check_bpmeasure_field() + \
               self.check_bpminute_field()
         return msg
 
     # get all the note hold durations from user's selections
     def get_durations(self):
-        _chord = [.0 for x in
-                  range(self.spinbox_chord.value())] if self.notebox_chord.isChecked() else []  # played with last note
-        _32nd = [.125 for x in
-                 range(self.spinbox_32.value())] if self.notebox_32.isChecked() else []  # thirty-second notes
-        _16th = [.25 for x in range(self.spinbox_16.value())] if self.notebox_16.isChecked() else []  # sixteenth notes
+        _chord = [.0 for x in range(self.spinbox_chord.value())] if self.notebox_chord.isChecked() else []
+        _32nd = [.125 for x in range(self.spinbox_32.value())] if self.notebox_32.isChecked() else []
+        _16th = [.25 for x in range(self.spinbox_16.value())] if self.notebox_16.isChecked() else []
         _8th = [.5 for x in range(self.spinbox_8.value())] if self.notebox_8.isChecked() else []  # eighth notes
         _4s = [1 for x in range(self.spinbox_4.value())] if self.notebox_4.isChecked() else []  # quarter notes
         _2s = [2 for x in range(self.spinbox_2.value())] if self.notebox_2.isChecked() else []  # half notes
@@ -330,7 +338,14 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Create our note times from the durations
         self.make_notetimes()
+
+        # Prevents similar stacked note durations at either end of measure
+        random.shuffle(self.note_times)
+
+        # Make our measure!
         self.makemeasure()
+
+        # Display the measure on the screen
         self.show_measure()
 
     # Remove the measure at the iterator's position
@@ -366,15 +381,27 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # saves song to file
     def savesong(self):  # TODO
+        try:
 
-        filename = str(input("save as:"))
-        savefolder = "./songs/"
-        filepath = savefolder + filename
-        if not os.path.isdir(savefolder):
-            os.makedirs(savefolder)
-        with open(filepath + '.mid', 'wb') as output_file:
-            MyMIDI.writeFile(output_file)
-        return
+            qf = QtWidgets.QFileDialog(self)
+            qf.setDefaultSuffix('.txt')
+            qf.selectNameFilter("Midi files (*.mid)")
+            filename = ''.join(qf.getSaveFileName())
+            print(filename)
+            savefolder = "./songs/"
+            filepath = savefolder + filename
+            running_time = 0.0
+            for note, note_length in zip(self.song):
+                running_time += note_length
+                MyMIDI.addTempo(track=0, time=0, tempo=self.beatsperminute)
+                MyMIDI.addNote(track=0, channel=0, time=running_time, duration=note_length, volume=100)
+            if not os.path.isdir(savefolder):
+                os.makedirs(savefolder)
+            with open(filepath + '.mid', 'wb') as output_file:
+                MyMIDI.writeFile(output_file)
+            return
+        except Exception as e:
+            print(e)
 
     # get range difference between two notes
     def getrangecount(self, a, b):
@@ -450,12 +477,11 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as e:
             print(e)
 
-        #print('{} {}'.format(len(self.thismeasure), len(self.note_times)))
+        # print('{} {}'.format(len(self.thismeasure), len(self.note_times)))
 
     def playmeasure(self):  # TODO
         print()
         try:
-            print('{} and {} should be equal'.format(len(self.thismeasure), len(self.note_times)))
             for note, sleep in zip(self.thismeasure, self.note_times):
                 self.playnote(note, sleep)
         except Exception as e:
@@ -467,7 +493,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         if sys.platform in ('posix', 'linux', 'linux2'):
             subprocess.Popen(['aplay', '-q', 'wav/' + str(self.thismeasure[noteint])])
         if sys.platform in ('win32', 'win64', 'windows'):
-            s = mixer.Sound(("wav/P-" + str(noteint) + '.wav'))
+            s = mixer.Sound(("wav/" + str(noteint) + '.wav'))
             s.play()
         sleep(sleeptime)
 

@@ -1,6 +1,8 @@
 # MusicGenerator
 Music generator made in Python and QT. 
 
+![](./preview.png)
+
 ## Quickstart
 1. Click "Randomize"
 2. Click "Generate"

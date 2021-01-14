@@ -1,6 +1,10 @@
+# All our relationship / music notation junk
+from musicstructs import *
+
 import random
 import sys
 import os
+from dataclasses import dataclass
 
 from PyQt5 import QtCore
 from PyQt5 import QtGui
@@ -15,35 +19,11 @@ from time import sleep
 from pygame import mixer
 
 # Init pygame audio mixer
-
 mixer.init()
 mixer.set_num_channels(64)
 
 # init MyMidi
 MyMIDI = MIDIFile(1)
-
-note = namedtuple('Note', ['track', 'channel', 'pitch', 'time', 'duration', 'volume'])
-basicnotelist = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
-name_to_int_base12 = {'C': 0, 'Db': 1, 'D': 2, 'Eb': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'Ab': 8, 'A': 9,
-                      'Bb': 10, 'B': 11}
-name_to_int_distance = {'C': 0, 'C#/Db': 1, 'D': 2, 'D#/Eb': 3, 'E': 4, 'F': 5, 'F#/Gb': -6,
-                        'G': -5, 'G#/Ab': -4, 'A': -3, 'A#/Bb': -2, 'B': -1}
-int_distance = [0, 1, 2, 3, 4, 5, -6, -5, -4, -3, -2, -1]
-intref = ["C1", "Db1", "D1", "Eb1", "E1", "F1", "#1", "G1", "Ab1", "A1", "Bb1", "B1", "C2", "Db2", "D2",
-          "Eb2", "E2", "F2", "F#2", "G2", "Ab2", "A2", "Bb2", "B2", "C3", "Db3", "D3", "Eb3", "E3", "F3",
-          "F#3", "G3", "Ab3", "A3", "Bb3", "B3", "C4", "Db4", "D4", "Eb4", "E4", "F4", "F#4", "G4", "Ab4",
-          "A4", "Bb4", "B4", "C5", "Db5", "D5", "Eb5", "E5", "F5", "F#5", "G5", "Ab5", "A5", "Bb5", "B5",
-          "C6", "Db6", "D6", "Eb6", "E6", "F6", "F#6", "G6", "Ab6", "A6", "Bb6", "B6", "C7", "Db7", "D7",
-          "Eb7", "E7", "F7", "F#7", "G7", "Ab7", "A7", "Bb7", "B7", "C8"]
-toneref = {'C1': 24, 'Db1': 25, 'D1': 26, 'Eb1': 27, 'E1': 28, 'F1': 29, 'F#1': 30, 'G1': 31, 'Ab1': 32, 'A1': 33,
-           'Bb1': 34, 'B1': 35, 'C2': 36, 'Db2': 37, 'D2': 38, 'Eb2': 39, 'E2': 40, 'F2': 41, 'F#2': 42, 'G2': 43,
-           'Ab2': 44, 'A2': 45, 'Bb2': 46, 'B2': 47, 'C3': 48, 'Db3': 49, 'D3': 50, 'Eb3': 51, 'E3': 52, 'F3': 53,
-           'F#3': 54, 'G3': 55, 'Ab3': 56, 'A3': 57, 'Bb3': 58, 'B3': 59, 'C4': 60, 'Db4': 61, 'D4': 62, 'Eb4': 63,
-           'E4': 64, 'F4': 65, 'F#4': 66, 'G4': 67, 'Ab4': 68, 'A4': 69, 'Bb4': 70, 'B4': 71, 'C5': 72, 'Db5': 73,
-           'D5': 74, 'Eb5': 75, 'E5': 76, 'F5': 77, 'F#5': 78, 'G5': 79, 'Ab5': 80, 'A5': 81, 'Bb5': 82, 'B5': 83,
-           'C6': 84, 'Db6': 85, 'D6': 86, 'Eb6': 87, 'E6': 88, 'F6': 89, 'F#6': 90, 'G6': 91, 'Ab6': 92, 'A6': 93,
-           'Bb6': 94, 'B6': 95, 'C7': 96, 'Db7': 97, 'D7': 98, 'Eb7': 99, 'E7': 100, 'F7': 101, 'F#7': 102, 'G7': 103,
-           'Ab7': 104, 'A7': 105, 'Bb7': 106, 'B7': 107, 'C8': 108}
 
 
 # Return array that is rotated circular
@@ -56,34 +36,23 @@ def floatequal(l, r):
     return abs(l - r) < .01
 
 
-class TwoWayIterator: # TODO make simpler / write tests
-    def __init__(self, ourlist: list):
-        self.index = 0
-        self.element = None
-        self.ourlist = ourlist
+@dataclass
+class MidiNote:
+    def __init__(self, track: int = 0, channel: int = 0, pitch: int = 60, time: float = 1, duration: float = 1,
+                 volume: int = 100):
+        self.track: int = track
+        self.channel: int = channel
+        self.pitch: int = pitch
+        self.time: float = time
+        self.duration: float = duration
+        self.volume: int = volume
 
-    def insert(self, element):
-        self.ourlist.insert(self.index, element)
 
-    def remove(self):
-        if len(self.ourlist) > 1:
-            del (self.ourlist[self.index])
-            self.index -= 1
+class Song:
+    def __init__(self):
+        self.name = ''
+        self.measures = []
 
-    def next(self):
-        if self.index + 1 < len(self.ourlist):
-            self.index += 1
-        self.element = self.ourlist[self.index]
-        return self.element
-
-    def prev(self):
-        if self.index - 1 > 0:
-            self.index -= 1
-        self.element = self.ourlist[self.index]
-        return self.element
-
-    def get_element(self):
-        return self.element
 
 class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -96,7 +65,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         self.wavdir = 'wav/'
 
         # piano settings
-        self.starting_point = 60  # (middle C)
+        self.starting_point = 60  # (60 = middle C)
         self.note_range = 16  # 2 octaves of travel room
         self.c1 = 24
 
@@ -106,23 +75,29 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         # From GUI Selections
         self.key = None
         self.tension = None
-        # list of note lengths
         self.durations = []
-        # list of this measure's note lengths
-        self.thisnote_times = []
 
+        # seed for random (Set to something for testing)
         self.seed = None
         self.random_seed()
+
         self.beatspermeasure = None
         self.beatsperminute = None  # Not implemented yet, or maybe not ever (MIDI ideal replacement)
 
         # Generated using methods below
         self.ourscale = []
-        self.thismeasure = []  # filled with note objects
-        self.song = []  # filed with measures
-        self.song_iterator = TwoWayIterator(self.song)  # For CRUD operations
 
-        self.imagelabel = QtWidgets.QLabel
+        self.thismeasure_notes = []  # filled with note int objects
+        self.thismeasure_times = []  # filled with sleep float objects
+        self.song_index = 0
+
+        self.thismeasure = {'notes': self.thismeasure_notes, 'times': self.thismeasure_times}
+
+        self.song = Song()  # filed with measures
+
+        # Inserting and moving by-measure in the song
+        self.selected_measure = None  # used for iteration in the song
+        self.measure_index = 0  # used for iteration in the song
 
         # Connect functions with gui elements
         self.generatebutton.clicked.connect(self.new_measure)
@@ -135,115 +110,123 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         self.deletebutton.clicked.connect(self.delete_measure)
         self.insertbutton.clicked.connect(self.insert_new_measure)
         self.playbutton.clicked.connect(self.play_song)
-        self.playmeasurebutton.clicked.connect(self.playmeasure)
+        self.playmeasurebutton.clicked.connect(self.play_current_measure)
 
-        self.actionNew_Song.triggered.connect(self.newsong)
+        self.actionNew_Song.triggered.connect(self.new_song)
         self.actionSave_Song.triggered.connect(self.save_song)
         self.actionAbout.triggered.connect(self.about_menu_window)
         self.actionExport_to_MIDI.triggered.connect(self.export_to_midi)
         self.actionQuit.triggered.connect(self.quit)
 
-    def quit(self):
-        sys.exit(self)
+    # Output Methods
 
-    def aboutmenu(self):
-        self.popup_window()
+    # Display the measure to the output label (WIP)
+    def show_measure(self, blank=False):
+        self.outputlabel.setText('')
+        self.outputlabel.setAlignment(QtCore.Qt.AlignLeft)
+        measure_note_str = 'Position: {} / Length: {}\n\n'.format(self.song_index + 1, len(self.song.measures))
+        if blank:
+            self.outputlabel.setText(measure_note_str)
+            return
 
+        try:
+            measure_note_str += '\t'.join([str(intref[i - self.c1]) for i in self.thismeasure_notes])
+        except Exception as e:
+            print(self.thismeasure_notes)
+            print('measure_note_str failed ' + str(e))
+
+        try:
+            measure_duration_str = '\t'.join([timeref[i] for i in self.thismeasure_times])
+        except Exception as e:
+            print('measure_duration_str failed ' + str(e))
+
+        try:
+            self.outputlabel.setText(measure_note_str + '\n' + measure_duration_str)
+        except Exception as e:
+            print('outputlabel.setText failed ' + str(e))
+
+    # saves song to file
+    def save_song(self):
+        CHANNEL_NUMS = 8
+        filename = ''
+        try:
+            qf = QtWidgets.QFileDialog(self)
+            # Make the file save as a .midi
+            filename = qf.getSaveFileName(None, 'Save Song as Midi', '', 'Midi Files (*.mid)')[0]
+
+            # filename = qf.getSaveFileName()[0].replace('.mid', '')  # Just in case the user writes in .mid manually
+        except Exception as e:
+            print('save GUI failed: ' + str(e))
+            quit()
+
+        try:
+            MyMIDI.addTempo(track=0, time=0, tempo=self.beatsperminute)
+            running_time = 0.0
+            for measure in self.song.measures:
+                channel = 0
+                for note, note_length in zip(*measure):
+                    MyMIDI.addNote(track=0, channel=channel, pitch=note, time=running_time, duration=note_length,
+                                   volume=100)
+                    channel += 1
+                    if channel >= CHANNEL_NUMS:
+                        channel = 0
+                    running_time += note_length
+        except Exception as e:
+            print('failed to parse midi metadata: ' + str(e))
+
+        try:
+            with open(filename, 'wb') as output_file:
+                MyMIDI.writeFile(output_file)
+        except Exception as e:
+            print('failed to save file: ' + str(e))
+        return
+
+    # saves song to pdf
+    def export_to_pdf(self):  # TODO
+        pass
+
+    # saves song to wav
+    def export_to_wav(self):  # TODO
+        pass
+
+    # saves song to file
     def export_to_midi(self):
         pass
 
-    def newsong(self):
-        pass
+    # Play Methods
 
-    # sets a random seed for user
-    def random_seed(self):
-        self.seed = random.randint(0, sys.maxsize)
-        random.seed(self.seed)
-        self.seedtextbox.setText(str(self.seed))
+    # plays a song file
+    def playsongfile(self):  # TODO
+        for measure in self.song.measures:
+            self.playmeasure(measure)
 
-    def check_key_field(self):
-        msg = ''
+    # Plays a measure of notes
+    def play_current_measure(self):  # TODO
         try:
-            test = self.keywidget.selectedItems()[0].text()
+            for note, duration in zip(self.thismeasure_notes, self.thismeasure_times):
+                self.playnote(note, duration)
         except Exception as e:
-            msg = 'Please select a Key\n'
-        return msg
+            print(e)
 
-    def check_tension_field(self):
-        msg = ''
-        try:
-            test = self.tensionwidget.selectedItems()[0].text()
-        except Exception as e:
-            msg = 'Please select a Tension\n'
-        return msg
+    # plays a single note by integer value
+    def playnote(self, noteint, sleeptime):
+        # make a list of all files in the directory
+        if sys.platform in ('posix', 'linux', 'linux2'):
+            # subprocess.Popen(['aplay', '-q', 'wav/' + str(self.thismeasure_notes[noteint])])
+            s = mixer.Sound(("wav/" + str(noteint) + '.wav'))
+            s.play()
+        if sys.platform in ('win32', 'win64', 'windows'):
+            s = mixer.Sound(("wav/" + str(noteint) + '.wav'))
+            s.play()
+        sleep(sleeptime)
 
-    def check_checkboxes(self):
-        msg = ''
-        test = self.notebox_32.isChecked() or self.notebox_16.isChecked() or self.notebox_8.isChecked() or \
-               self.notebox_4.isChecked() or self.notebox_2.isChecked() or self.notebox_1.isChecked()
-
-        if not test:
-            msg = 'Please check some note boxes\n'
-        if self.notebox_chord.isChecked() and not test:
-            msg = 'Please check other boxes along with "Chord"'
-        return msg
-
-    def check_spinboxes(self):
-        msg = ''
-        test = self.spinbox_chord.value()
-        test += self.spinbox_32.value()
-        test += self.spinbox_16.value()
-        test += self.spinbox_8.value()
-        test += self.spinbox_4.value()
-        test += self.spinbox_2.value()
-        test += self.spinbox_1.value()
-        if test == 0:
-            msg = 'Please fill in some note occurrences (positive numbers)\n'
-        return msg
-
-    def check_seedbox_field(self):
-        msg = ''
-        if self.seedtextbox.text() == '':
-            msg = 'Please fill in a Seed (A positive #)\n'
-        return msg
-
-    def check_bpmeasure_field(self):
-        msg = ''
-        try:
-            test = self.spinbox_bpmeasure.value()
-        except Exception as e:
-            msg = 'Please fill in "Beats Per Measure" (A positive #)\n'
-        return msg
-
-    def check_bpminute_field(self):
-        msg = ''
-        try:
-            test = self.spinbox_bpminute.value()
-        except Exception as e:
-            msg = 'Please fill in "Beats Per Minute" (A positive #)\n'
-        return msg
-
-    def check_measureintegrity(self):
-        lm = len(self.thismeasure)
-        lt = len(self.thisnote_times)
-        if lt != lm:
-            print('{} {} measure lengths not equal!'.format(lt, lm))
-
-        if lt + lm == 0:
-            print('{} {} both measures are empty!'.format(lt, lm))
-
-    # verify all fields have data, or show user
-    def check_fields(self):
-        msg = self.check_key_field() + self.check_tension_field() + self.check_checkboxes() + \
-              self.check_spinboxes() + self.check_seedbox_field() + self.check_bpmeasure_field() + \
-              self.check_bpminute_field()
-        return msg
+    # GUI Action Methods
 
     # get all the note hold durations from user's selections
     def get_durations(self):
-        _chord = [.0 for x in range(self.spinbox_chord.value())] if self.notebox_chord.isChecked() else []
-        _32nd = [.125 for x in range(self.spinbox_32.value())] if self.notebox_32.isChecked() else []
-        _16th = [.25 for x in range(self.spinbox_16.value())] if self.notebox_16.isChecked() else []
+        _chord = [.0 for x in range(self.spinbox_chord.value())] if self.notebox_chord.isChecked() else []  # chord
+        _32nd = [.125 for x in range(self.spinbox_32.value())] if self.notebox_32.isChecked() else []  # 32nd
+        _16th = [.25 for x in range(self.spinbox_16.value())] if self.notebox_16.isChecked() else []  # 16th
         _8th = [.5 for x in range(self.spinbox_8.value())] if self.notebox_8.isChecked() else []  # eighth
         _4s = [1 for x in range(self.spinbox_4.value())] if self.notebox_4.isChecked() else []  # quarter
         _2s = [2 for x in range(self.spinbox_2.value())] if self.notebox_2.isChecked() else []  # half
@@ -257,6 +240,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tension = self.tensionwidget.selectedItems()[0].text()
         self.durations = self.get_durations()
         self.seed = self.seedtextbox.text()
+        random.seed(self.seed)
         self.beatspermeasure = self.spinbox_bpmeasure.value()
         self.beatsperminute = self.spinbox_bpminute.value()
 
@@ -351,171 +335,198 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
             random.choice([60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 180, 200, 220]))
 
     # Menu popup for the About menu
-    def about_menu_window(self):
+    def about_menu_window(self):  # TODO GET IMAGE + TEXT WORKING
         gl = QtWidgets.QGridLayout()
         gb = QtWidgets.QGroupBox()
 
-        self.imagelabel = QtWidgets.QLabel
+        imagelabel = QtWidgets.QLabel
         pixmap = QtGui.QPixmap('about.bmp')
-        self.imagelabel.setPixmap(pixmap)
-        gl.addItem(self.imagelabel)
-        #self.imagelabel.show()
+        imagelabel.setPixmap(pixmap)
+        gl.addItem(imagelabel)
+        # self.imagelabel.show()
 
     # Generic popup info window
-    def popup_window(self, msg: str, title='INFO'):
-        w1 = QtWidgets.QMessageBox()
-        w1.setFixedSize(500, 200)
-        w1.setWindowTitle('Error')
-        w1.setText(msg)
-        w1.exec()
+    def popup_window(self, msg='You didn\'t provide a message!', title='INFO'):
+        qm = QtWidgets.QMessageBox()
+        qm.setFixedSize(500, 200)
+        qm.setWindowTitle(title)
+        qm.setText(msg)
+        qm.exec()
         return
 
     # Reusable y/n window that returns a bool
-    def yesno_window(self,txt='Confirm?'):
-        qm = QtWidgets.QMessageBox
-        prompt = txt
+    def yesno_window(self, msg='Confirm?', title='INFO'):
+        qm = QtWidgets.QMessageBox()
+        qm.setWindowTitle(title)
+        prompt = msg
         ret = qm.question(self, '', prompt, qm.Yes | qm.No)
         if ret == qm.Yes:
             return True
         else:
             return False
-    # Make a measure with the given data
-    def new_measure(self):
-        # Check the data and pass error to the user
-        msg = None
+
+    # Quit the program
+    def quit(self):
+        sys.exit(self)
+
+    # GUI Data Verification Methods
+
+    def check_key_field(self):
+        msg = ''
         try:
-            msg = self.check_fields()
+            test = self.keywidget.selectedItems()[0].text()
         except Exception as e:
-            print('check_fields() failed ' + str(e))
+            msg = 'Please select a Key\n'
+        return msg
 
-        if msg:
-            self.popup_window(msg)
-            return
-
-        # Update the fields on-generate
+    def check_tension_field(self):
+        msg = ''
         try:
-            self.get_fields()
+            test = self.tensionwidget.selectedItems()[0].text()
         except Exception as e:
-            print('get_fields() failed ' + str(e))
+            msg = 'Please select a Tension\n'
+        return msg
 
-        # Create our scale
+    def check_checkboxes(self):
+        msg = ''
+        test = self.notebox_32.isChecked() or self.notebox_16.isChecked() or self.notebox_8.isChecked() or \
+               self.notebox_4.isChecked() or self.notebox_2.isChecked() or self.notebox_1.isChecked()
+
+        if not test:
+            msg = 'Please check some note boxes\n'
+        if self.notebox_chord.isChecked() and not test:
+            msg = 'Please check other boxes along with "Chord"'
+        return msg
+
+    def check_spinboxes(self):
+        msg = ''
+        test = self.spinbox_chord.value()
+        test += self.spinbox_32.value()
+        test += self.spinbox_16.value()
+        test += self.spinbox_8.value()
+        test += self.spinbox_4.value()
+        test += self.spinbox_2.value()
+        test += self.spinbox_1.value()
+        if test == 0:
+            msg = 'Please fill in some note occurrences (positive numbers)\n'
+        return msg
+
+    def check_seedbox_field(self):
+        msg = ''
+        if self.seedtextbox.text() == '':
+            msg = 'Please fill in a Seed (A positive #)\n'
+        return msg
+
+    def check_bpmeasure_field(self):
+        msg = ''
         try:
-            self.makescale()
+            test = self.spinbox_bpmeasure.value()
         except Exception as e:
-            print('makescale() failed ' + str(e))
+            msg = 'Please fill in "Beats Per Measure" (A positive #)\n'
+        return msg
 
-        # Create our note times from the durations
+    def check_bpminute_field(self):
+        msg = ''
         try:
-            self.make_notetimes()
+            test = self.spinbox_bpminute.value()
         except Exception as e:
-            print('make_notetimes() failed ' + str(e))
+            msg = 'Please fill in "Beats Per Minute" (A positive #)\n'
+        return msg
 
-        # Prevents similar stacked note durations at either end of measure
-        random.shuffle(self.thisnote_times)
+    def check_measureintegrity(self):
+        lm = len(self.thismeasure_notes)
+        lt = len(self.thismeasure_times)
+        if lt != lm:
+            print('{} {} measure lengths not equal!'.format(lt, lm))
 
-        try:
-            # Make our measure!
-            self.make_measurenotes()
-        except Exception as e:
-            print('make_measurenotes() failed ' + str(e))
+        if lt + lm == 0:
+            print('{} {} both measures are empty!'.format(lt, lm))
 
-        self.check_measureintegrity()
+    def check_fields(self):
+        msg = self.check_key_field() + self.check_tension_field() + self.check_checkboxes() + \
+              self.check_spinboxes() + self.check_seedbox_field() + self.check_bpmeasure_field() + \
+              self.check_bpminute_field()
+        return msg
 
-        # Display the measure on the screen
-        try:
-            self.show_measure()
-        except Exception as e:
-            print('{} {}'.format(self.thismeasure, len(self.thismeasure)))
-            print('{} {} \n{}'.format(self.thisnote_times, len(self.thisnote_times),
-                                      (str(sum(self.thisnote_times)) + 'should equal' + str(self.beatspermeasure))))
-            print('show measure failed ' + str(e))
+        # Music Theory
 
-    # Remove the measure at the iterator's position
-    def delete_measure(self):  # TODO
-        if self.yesno_window('Delete? Are you sure?'):
-            self.song_iterator.remove()
-        self.show_measure()
+        # Song Control
 
-    # Adds the last generated measure to the song at the iterator's position
-    def insert_new_measure(self):  # TODO
-        print('Before: {}'.format(self.song))
-        self.song_iterator.insert([self.thismeasure, self.thisnote_times])
-        self.popup_window('Measure successfully inserted. Song is {} measures long'.format(len(self.song)))
-        print('After: {}'.format(self.song))
-
-    # Display the measure to the output label (WIP)
-    def show_measure(self):
-        self.outputlabel.setText('')
-        self.outputlabel.setAlignment(QtCore.Qt.AlignLeft)
-        try:
-            measure_note_str = '\t'.join([str(intref[i - self.c1]) for i in self.thismeasure])
-        except Exception as e:
-            print(self.thismeasure)
-            print('measure_note_str failed ' + str(e))
-
-        try:
-            measure_duration_str = '\t'.join([str(i) for i in self.thisnote_times])
-        except Exception as e:
-            print('measure_duration_str failed ' + str(e))
-
-        try:
-            self.outputlabel.setText(measure_note_str + '\n' + measure_duration_str)
-        except Exception as e:
-            print('outputlabel.setText failed ' + str(e))
+    # Song Control
 
     # Move the iterator next by one, return the result to the display
     def forward_measure(self):  # TODO
-        if self.thismeasure == self.song_iterator.get_element():
-            print('its ok, no need to check for save')
-        else:
-            if self.yesno_window('Insert your measure before moving?'):
-                self.insert_new_measure()
-        self.song_iterator.next()
-        self.show_measure()
+        if self.song_index < len(self.song.measures) - 1:
+            self.song_index += 1
+            self.thismeasure = self.song.measures[self.song_index]
+            self.thismeasure_notes, self.thismeasure_times = self.song.measures[self.song_index]
+            self.show_measure()
 
     # Move the iterator back by one, return the result to the display
     def back_measure(self):  # TODO
-        if self.yesno_window('Insert your measure before moving?'):
-            self.insert_new_measure()
-        self.song_iterator.prev()
-        self.show_measure()
+        if self.song_index > 0:
+            self.song_index -= 1
+            self.thismeasure = self.song.measures[self.song_index]
+            self.thismeasure_notes, self.thismeasure_times = self.song.measures[self.song_index]
+            self.show_measure()
 
     # Play the song. (MIDI would be better but it's more complicated than WAVs for now)
     def play_song(self):  # TODO
+        try:
+            for measure in self.song.measures:
+                self.thismeasure = measure
+                self.thismeasure_notes = self.thismeasure[0]
+                self.thismeasure_times = self.thismeasure[1]
+                self.play_current_measure()
+        except Exception as e:
+            print(e)
+
+    # Remove the measure at the iterator's position
+    def delete_measure(self):  # TODO
+        try:
+            if self.yesno_window('Delete measure? Are you sure?'):
+                if len(self.song.measures) > 0:
+                    del self.song.measures[self.song_index]
+                    if self.song_index > 0:
+                        self.song_index -= 1
+                    if len(self.song.measures) == 0:
+                        self.show_measure(blank=True)
+                        self.thismeasure_notes, self.thismeasure_times = [], []
+                        return
+                    print('reassigning vars')
+                    self.thismeasure = self.song.measures[self.song_index]
+                    self.thismeasure_notes, self.thismeasure_times = self.song.measures[self.song_index]
+                self.show_measure()
+            print('made it')
+        except Exception as e:
+            self.song.measures()
+            print(self.song_index)
+            print(e)
+
+    # Adds the last generated measure to the song at the iterator's position
+    def insert_new_measure(self):  # TODO
+        try:
+            if self.thismeasure_times == []:
+                self.popup_window('Your measure is empty')
+                return
+            self.song.measures.insert(self.song_index, (self.thismeasure_notes, self.thismeasure_times))
+            self.popup_window('Measure successfully inserted. Song is {} measures long'.format(len(self.song.measures)))
+            self.show_measure()
+        except Exception as e:
+            print(e)
+
+    # Song Creation
+
+    # reinitialize the whole song object, basically start the program from scratch
+    def new_song(self):  # TODO
+        if self.yesno_window(title='Save your song?', msg='Save your song before making a new song?'):
+            self.save_song()
+        else:
+            print(self.thismeasure_notes)
+            self.__init__()
+            print(self.thismeasure_notes)
+            self.show_measure(blank=True)
         pass
-
-    # saves song to file
-    def save_song(self):
-        filename = ''
-        try:
-            qf = QtWidgets.QFileDialog(self)
-            # Make the file save as a .midi
-            filename = qf.getSaveFileName(None, 'Save Song as Midi', '', 'Midi Files (*.mid)')[0]
-
-            # filename = qf.getSaveFileName()[0].replace('.mid', '')  # Just in case the user writes in .mid manually
-        except Exception as e:
-            print('save GUI failed ' + str(e))
-            quit()
-        running_time = 0.0
-        try:
-            MyMIDI.addTempo(track=0, time=0, tempo=self.beatsperminute)
-            for measure in self.song:
-                for note, note_length in zip(*measure):
-                    MyMIDI.addNote(track=0, channel=0, pitch=note, time=running_time, duration=note_length, volume=100)
-                    running_time += note_length
-        except Exception as e:
-            print('failed to parse midi metadata' + str(e))
-
-        try:
-            with open(filename, 'wb') as output_file:
-                MyMIDI.writeFile(output_file)
-        except Exception as e:
-            print('failed to save file' + str(e))
-        return
-
-    # get range difference between two notes
-    def getrangecount(self, a, b):
-        return abs(self.toneref[a] - self.toneref[b])
 
     # returns a scale of 16 notes, from the key tonic + 24
     def makescale(self):
@@ -546,29 +557,26 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
             filler += keywheel[note % len(keywheel)]
             self.ourscale.append(filler + ouroffset + self.starting_point)
 
-    # Add random note lengths to an array until it equals beats per measure
-    def make_notetimes(self):
-        self.thisnote_times = []
-        while float(sum(self.thisnote_times)) < float(self.beatspermeasure):
-
-            nexttime = random.choice(self.durations)
-            self.thisnote_times.append(nexttime)
-            if sum(self.thisnote_times) > float(self.beatspermeasure):
-                del (self.thisnote_times[-1])
-                continue
-            if sum(self.thisnote_times) - float(self.beatspermeasure) > .001:
-                return
-
     # Fills an n=#sleeps array with notes from that scale that hopefully travel well.
-    def make_measurenotes(self):
-        self.thismeasure = []
-        i = len(self.thisnote_times)
+    def make_measure(self):
+        self.thismeasure_times = []
+        while float(sum(self.thismeasure_times)) < float(self.beatspermeasure):
+            nexttime = random.choice(self.durations)
+            self.thismeasure_times.append(nexttime)
+            if sum(self.thismeasure_times) > float(self.beatspermeasure):
+                del (self.thismeasure_times[-1])
+                continue
+            if sum(self.thismeasure_times) - float(self.beatspermeasure) > .001:
+                break
+        random.shuffle(self.thismeasure_times)
+        self.thismeasure_notes = []
+        i = len(self.thismeasure_times)
         while i > 0:
             # add something to it if it's empty
-            if len(self.thismeasure) == 0:
-                self.thismeasure.append(self.ourscale[0])
+            if len(self.thismeasure_notes) == 0:
+                self.thismeasure_notes.append(self.ourscale[0])
                 i -= 1
-            lastnoteused = self.thismeasure[-1]
+            lastnoteused = self.thismeasure_notes[-1]
 
             # randomly choose a note from our scale
             nextjump = random.choice(self.ourscale)
@@ -578,39 +586,63 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
             # not a minor second or second away in a chord
             # not the same exact note twice together in a chord
             if (absjump >= 10 or absjump == 6) or \
-                    ((absjump == 2 or absjump == 1) and self.thisnote_times[i] < 0.01) or \
-                    (abs(absjump - lastnoteused == lastnoteused) and self.thisnote_times[i] < 0.01):
+                    ((absjump == 2 or absjump == 1) and self.thismeasure_times[i] < 0.01) or \
+                    (abs(absjump - lastnoteused == lastnoteused) and self.thismeasure_times[i] < 0.01):
                 continue
             else:
-                self.thismeasure.append(nextjump)
+                self.thismeasure_notes.append(nextjump)
                 i -= 1
+        self.thismeasure = {'notes': self.thismeasure_notes, 'times': self.thismeasure_times}
 
-        # print('{} {}'.format(len(self.thismeasure), len(self.thisnote_times)))
+    # sets a random seed for user
+    def random_seed(self):
+        self.seed = random.randint(0, sys.maxsize)
+        random.seed(self.seed)
+        self.seedtextbox.setText(str(self.seed))
 
-    # plays a song file
-    def playsongfile(self):
-        for measure in self.song:
-            self.playmeasure()
-
-    def playmeasure(self):  # TODO
-        print()
+    # Make a measure with the given data
+    def new_measure(self):
+        # Check the data and pass error to the user
+        msg = None
         try:
-            for note, sleep in zip(self.thismeasure, self.thisnote_times):
-                self.playnote(note, sleep)
+            msg = self.check_fields()
         except Exception as e:
-            print(e)
+            print('check_fields() failed: ' + str(e))
 
-    # plays a single note by integer value
-    def playnote(self, noteint, sleeptime):
-        # make a list of all files in the directory
-        if sys.platform in ('posix', 'linux', 'linux2'):
-            subprocess.Popen(['aplay', '-q', 'wav/' + str(self.thismeasure[noteint])])
-        if sys.platform in ('win32', 'win64', 'windows'):
-            s = mixer.Sound(("wav/" + str(noteint) + '.wav'))
-            s.play()
-        sleep(sleeptime)
+        if msg:
+            self.popup_window(msg)
+            return
 
+        # Update the fields on-generate
+        try:
+            self.get_fields()
+        except Exception as e:
+            print('get_fields() failed: ' + str(e))
 
+        # Create our scale
+        try:
+            self.makescale()
+        except Exception as e:
+            print('makescale() failed: ' + str(e))
+
+        # Create our note times from the durations
+        try:
+            self.make_measure()
+        except Exception as e:
+            print('make_notetimes() failed: ' + str(e))
+
+        # Display the measure on the screen
+        try:
+            self.show_measure()
+        except Exception as e:
+            print('{} {}'.format(self.thismeasure_notes, len(self.thismeasure_notes)))
+            print('{} {} \n{}'.format(self.thismeasure_times, len(self.thismeasure_times),
+                                      (str(sum(self.thismeasure_times)) + 'should equal' + str(self.beatspermeasure))))
+            print('show measure failed ' + str(e))
+
+    # get range difference between two notes
+    def getrangecount(self, a, b):
+        return abs(self.toneref[a] - self.toneref[b])
 
 
 def main():

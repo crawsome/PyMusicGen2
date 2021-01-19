@@ -335,7 +335,7 @@ class Ui_MainWindow(object):
         self.randomsettingsbutton.setText(_translate("MainWindow", "Randomize"))
         self.resetsettingsbutton.setText(_translate("MainWindow", "Reset Selection"))
         self.generatebutton.setText(_translate("MainWindow", "Generate!"))
-        self.menuMenu.setTitle(_translate("MainWindow", "Menu"))
+        self.menuMenu.setTitle(_translate("MainWindow", "File"))
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.menuMeasure.setTitle(_translate("MainWindow", "Measure"))
         self.actionNew_Song.setText(_translate("MainWindow", "New Song..."))

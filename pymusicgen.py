@@ -9,11 +9,27 @@ from window import Ui_MainWindow
 from midiutil import MIDIFile
 from time import sleep
 from pygame import mixer
+import os
 import random
 import sys
 import logging
+import datetime as dt
 
-logging.basicConfig(filename='test.log', level=logging.DEBUG)
+dt_date = str(dt.datetime.now().date())
+dt_sec = str(dt.datetime.now().time().second)
+dt_min = str(dt.datetime.now().time().minute)
+dt_hr = str(dt.datetime.now().time().hour)
+file_name = '{}-{}-{}-{}'.format(dt_date, dt_hr, dt_min, dt_sec)
+
+drum_range_low = 'A1'
+drum_range_height = 'F4'
+
+LOGGING = False
+if not os.path.exists('./logs'):
+    os.mkdir('./logs')
+
+if LOGGING:
+    logging.basicConfig(filename='logs/{}.log'.format(file_name), level=logging.DEBUG)
 
 # Init pygame audio mixer
 mixer.init()
@@ -24,6 +40,7 @@ MyMIDI = MIDIFile(1)
 
 
 # Return array that is rotated circular
+
 def rotate(l, n):
     return l[-n:] + l[:-n]
 
@@ -50,7 +67,7 @@ class Song:
         self.name = ''
         self.measures = []
 
-
+# TODO: Split into two objects. Music / GUI stuff.
 class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(PyMusicGen, self).__init__(parent)
@@ -79,7 +96,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         self.random_seed()
 
         self.beatspermeasure = None
-        self.beatsperminute = None  # Not implemented yet, or maybe not ever (MIDI ideal replacement)
+        self.beatsperminute = None
 
         # Generated using methods below
         self.ourscale = []
@@ -146,14 +163,16 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # saves song to file
     def save_song(self):
-        CHANNEL_NUMS = 8
         filename = ''
         try:
+            # create our save file dialog
             qf = QtWidgets.QFileDialog(self)
-            # Make the file save as a .midi
+
+            # Show user file dialog, Make the file save as a .midi
             filename = qf.getSaveFileName(None, 'Save Song as Midi', '', 'Midi Files (*.mid)')[0]
 
-            # filename = qf.getSaveFileName()[0].replace('.mid', '')  # Just in case the user writes in .mid manually
+            if not filename:  # if they hit cancel
+                return
         except Exception as e:
             logging.exception('save GUI failed: ' + str(e))
 
@@ -161,13 +180,9 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
             MyMIDI.addTempo(track=0, time=0, tempo=self.beatsperminute)
             running_time = 0.0
             for measure in self.song.measures:
-                channel = 0
                 for note, note_length in zip(*measure):
-                    MyMIDI.addNote(track=0, channel=channel, pitch=note, time=running_time, duration=note_length,
+                    MyMIDI.addNote(track=0, channel=0, pitch=note, time=running_time, duration=note_length,
                                    volume=100)
-                    channel += 1
-                    if channel >= CHANNEL_NUMS:
-                        channel = 0
                     running_time += note_length
         except Exception as e:
             logging.exception('failed to parse midi metadata: ' + str(e))
@@ -188,7 +203,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         pass
 
     # saves song to file
-    def export_to_midi(self):
+    def export_to_midi(self):  # TODO
         pass
 
     """Play Methods"""
@@ -517,9 +532,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.yesno_window(title='Save your song?', msg='Save your song before making a new song?'):
             self.save_song()
         else:
-            print(self.thismeasure_notes)
-            self.__init__()
-            print(self.thismeasure_notes)
+            self.song = Song()
             self.show_measure(blank=True)
         pass
 
@@ -639,7 +652,8 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as e:
             logging.exception('{} {}'.format(self.thismeasure_notes, len(self.thismeasure_notes)))
             logging.exception('{} {} \n{}'.format(self.thismeasure_times, len(self.thismeasure_times),
-                                      (str(sum(self.thismeasure_times)) + 'should equal' + str(self.beatspermeasure))))
+                                                  (str(sum(self.thismeasure_times)) + 'should equal' + str(
+                                                      self.beatspermeasure))))
             logging.exception('show measure failed ' + str(e))
 
     # get range difference between two notes

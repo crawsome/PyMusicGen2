@@ -1,5 +1,7 @@
-# MusicGenerator
+# PyMusicGen2
 Music generator made in Python and QT. 
+
+A QT implementation of an old [CLI dream](https://github.com/crawsome/pymusicgen) I had. 
 
 ![](./demo.gif)
 
@@ -9,24 +11,17 @@ Music generator made in Python and QT.
 3. Click "Generate" to create a measure. 
 4. Click "Play measure" to hear the measure
 5. If you like the measure, click "Insert into song." (WIP)
-6. CLick "Forward One Measure" or "Back One Measure" to page through the measures of the song. 
-7. If you want to the measure you are looking at, you can click "Delete Measure"
+6. Click "Forward One Measure" or "Back One Measure" to page through the measures of the song, and to insert measures in other places. 
+7. If you want to delete the measure you are looking at, you can click "Delete Measure"
 8. If you like the song, you can go to **File** -> **Save** and you can save the file in MIDI format.
-8Click "Random Seed" then "Generate" again to create a new measure with the same song attributes. 
+9. Click "Random Seed" then "Generate" again to create a new measure with the same song attributes. 
 
 More features to come as I develop the rest of the GUI
 
 ## Manual Use
 1. Select a Key in the **Key** list. 
 2. Select a Tension in the **Tension** list. 
-3. Select note proprotions.
-4.
-
-### Chords Checkbox
-FYI: When you check a checkbox and enter a number. This will be the **chance of occurence** in the song of that note type. 
-So if you choose 2 on Quarter notes, and 2 on Half notes, there will be a 50/50 chance of each appearing in the song.
-It fills up an array of sleep values that correspond to your selections, and the song will use those sleep values as the song's rhythm.
-
+3. Select note duration frequencies. The song will randomly choose from the proportion of notes you select here as the song's rhythm.
 4. Enter a Seed (A positive whole number). This determines the "random" number generators deterministic pattern in Python. 
 5. Define the Beats Per Measure. This determines how many notes can fit in your measure
 

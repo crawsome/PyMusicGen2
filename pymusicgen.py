@@ -67,6 +67,7 @@ class Song:
         self.name = ''
         self.measures = []
 
+
 # TODO: Split into two objects. Music / GUI stuff.
 class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -221,14 +222,17 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as e:
             logging.exception(e)
 
-    # plays a single note by integer value
+    # plays a single note by integer value, left separate in case different platforms have playback bugs
     def playnote(self, noteint, sleeptime):
         # make a list of all files in the directory
-        if sys.platform in ('posix', 'linux', 'linux2'):
-            # subprocess.Popen(['aplay', '-q', 'wav/' + str(self.thismeasure_notes[noteint])])
+        if sys.platform in ('posix', 'linux', 'linux2'): #Linux
+            # subprocess.Popen(['aplay', '-q', 'wav/' + str(self.thismeasure_notes[noteint])]) #Old way
             s = mixer.Sound(("wav/" + str(noteint) + '.wav'))
             s.play()
-        if sys.platform in ('win32', 'win64', 'windows'):
+        if sys.platform in ('win32', 'win64', 'windows'): #Windows
+            s = mixer.Sound(("wav/" + str(noteint) + '.wav'))
+            s.play()
+        if sys.platform in ('darwin'): #Mac
             s = mixer.Sound(("wav/" + str(noteint) + '.wav'))
             s.play()
         sleep(sleeptime)
@@ -244,8 +248,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
         _4s = [1 for x in range(self.spinbox_4.value())] if self.notebox_4.isChecked() else []  # quarter
         _2s = [2 for x in range(self.spinbox_2.value())] if self.notebox_2.isChecked() else []  # half
         _1s = [4 for x in range(self.spinbox_1.value())] if self.notebox_1.isChecked() else []  # whole
-        ret = _chord + _32nd + _16th + _8th + _4s + _2s + _1s
-        return ret
+        return _chord + _32nd + _16th + _8th + _4s + _2s + _1s
 
     # Assign all user fields
     def get_fields(self):
@@ -349,13 +352,21 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # Menu popup for the About menu
     def about_menu_window(self):  # TODO GET IMAGE + TEXT WORKING
-        gl = QtWidgets.QGridLayout()
-        gb = QtWidgets.QGroupBox()
+        qm = QtWidgets.QMessageBox()
+        qm.setFixedSize(500, 400)
+        qm.setWindowTitle('About MusicGenerator')
 
-        imagelabel = QtWidgets.QLabel
+        gl = QtWidgets.QGridLayout()
+        # gb = QtWidgets.QGroupBox()
+
+        imagelabel = QtWidgets.QLabel()
+
         pixmap = QtGui.QPixmap('about.bmp')
         imagelabel.setPixmap(pixmap)
-        gl.addItem(imagelabel)
+        gl.addWidget(imagelabel, 1, 1)
+        qm.setLayout(gl)
+        qm.setText('PyMusicGen 2.0 colinburke.com')
+        qm.exec()
         # self.imagelabel.show()
 
     # Generic popup info window
@@ -566,7 +577,7 @@ class PyMusicGen(QtWidgets.QMainWindow, Ui_MainWindow):
             self.ourscale.append(filler + ouroffset + self.starting_point)
 
     # Fills an n=#sleeps array with notes from that scale that hopefully travel well.
-    def make_measure(self):
+    def make_measure(self): #TODO different starting notes per measure, resolution, travel, motifs, markov chains
         self.thismeasure_times = []
         while float(sum(self.thismeasure_times)) < float(self.beatspermeasure):
             nexttime = random.choice(self.durations)
